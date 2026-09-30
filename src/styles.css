@@ -609,12 +609,7 @@ input:focus-visible {
     line-height: 0;
 }
 
-.qr:empty {
-    display: none;
-}
-
-.qr img,
-.qr canvas {
+.qr svg {
     display: block;
     width: 180px;
     height: 180px;
