@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+        <meta name="theme-color" content="#0b0b0f" />
+        <meta name="description" content="Play a song on every device at exactly the same moment." />
+        <title>SyncPlay</title>
+        <link
+            rel="icon"
+            href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230b0b0f'/%3E%3Cpath d='M7 20v-8M12 24V8M17 20v-8M22 24V8M27 20v-8' stroke='%23d4ff3a' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E"
+        />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap"
+            rel="stylesheet"
+        />
+        <link rel="preconnect" href="https://time.akamai.com" crossorigin />
+        <link rel="stylesheet" href="style.css" />
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
+        <script type="module" src="app.js"></script>
+    </head>
+    <body>
+        <div class="app">
+            <header class="top">
+                <a class="brand" href="./" id="brand">
+                    <span class="bars" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+                    SyncPlay
+                </a>
+                <button class="pill clock-pill" id="clockPill" data-state="syncing" type="button">
+                    <span class="dot"></span><span id="clockText">Syncing clock…</span>
+                </button>
+            </header>
+
+            <!-- Host: pick a song -->
+            <main id="setupView" class="view" hidden>
+                <h1>Every phone.<br /><span class="accent">Same beat.</span></h1>
+                <p class="lede">
+                    Paste a link to a song and share the invite. Every device that joins plays it at
+                    exactly the same moment, even if their clocks are off.
+                </p>
+
+                <form id="setupForm" novalidate>
+                    <label class="field">
+                        <span class="label">Song link</span>
+                        <input
+                            id="urlInput"
+                            type="url"
+                            inputmode="url"
+                            placeholder="https://example.com/track.mp3"
+                            autocomplete="off"
+                            autocapitalize="off"
+                            spellcheck="false"
+                            required
+                        />
+                    </label>
+                    <p id="urlStatus" class="url-status" aria-live="polite"></p>
+
+                    <div class="field">
+                        <span class="label">Start</span>
+                        <div class="chips" id="delayChips" role="radiogroup" aria-label="Start">
+                            <button type="button" class="chip" role="radio" data-delay="3">Right away</button>
+                            <button type="button" class="chip" role="radio" data-delay="30">In 30 s</button>
+                            <button type="button" class="chip" role="radio" data-delay="60">In 1 min</button>
+                            <button type="button" class="chip" role="radio" data-delay="300">In 5 min</button>
+                        </div>
+                    </div>
+
+                    <details class="more">
+                        <summary>More options</summary>
+                        <div class="more-body">
+                            <label class="field inline">
+                                <span class="label">Start from</span>
+                                <input id="posInput" type="text" inputmode="numeric" placeholder="0:00" />
+                            </label>
+                            <label class="toggle">
+                                <input id="loopInput" type="checkbox" />
+                                <span class="track"><span class="knob"></span></span>
+                                Loop the song
+                            </label>
+                        </div>
+                    </details>
+
+                    <button class="btn primary big" type="submit" id="startBtn">Start &amp; get invite link</button>
+                </form>
+
+                <ol class="steps">
+                    <li><b>1</b>Paste a link</li>
+                    <li><b>2</b>Share the invite</li>
+                    <li><b>3</b>Everyone taps join</li>
+                </ol>
+            </main>
+
+            <!-- Everyone: the shared session -->
+            <main id="sessionView" class="view" hidden>
+                <div class="track-info">
+                    <div class="track-title" id="trackTitle"></div>
+                    <div class="track-sub" id="trackSub"></div>
+                </div>
+
+                <div class="stage" id="stage" data-state="idle">
+                    <svg class="ring" viewBox="0 0 100 100" aria-hidden="true">
+                        <circle class="ring-bg" cx="50" cy="50" r="46" />
+                        <circle class="ring-fg" id="ringFg" cx="50" cy="50" r="46" pathLength="1" />
+                    </svg>
+                    <div class="glow" aria-hidden="true"></div>
+                    <div class="stage-center">
+                        <div class="big" id="bigTime">0:00</div>
+                        <div class="big-label" id="bigLabel"></div>
+                    </div>
+                </div>
+
+                <p class="status" id="statusLine" aria-live="polite"></p>
+                <div class="loadbar" id="loadBar" hidden><span id="loadFill"></span></div>
+
+                <div class="actions">
+                    <button class="btn primary big" id="joinBtn" type="button">Tap to join</button>
+                    <button class="btn primary big" id="replayBtn" type="button" hidden>
+                        Play again for everyone
+                    </button>
+                    <button class="btn ghost" id="leaveBtn" type="button" hidden>Stop on this device</button>
+                </div>
+
+                <section class="card share" id="share">
+                    <div class="share-head">
+                        <b>Invite others</b>
+                        <span>They open the link and tap join, even after it has started.</span>
+                    </div>
+                    <div class="qr-wrap"><div class="qr" id="qr"></div></div>
+                    <div class="share-row">
+                        <input id="shareUrl" readonly aria-label="Invite link" />
+                        <button type="button" class="btn small" id="copyBtn">Copy</button>
+                    </div>
+                    <button type="button" class="btn secondary" id="shareBtn" hidden>Share invite…</button>
+                </section>
+
+                <section class="card tune" id="tune" hidden>
+                    <div class="tune-head">
+                        <b>Out of step with the others?</b>
+                        <span>Bluetooth speakers add delay. Nudge this device until the beats line up.</span>
+                    </div>
+                    <div class="stepper">
+                        <button type="button" class="btn small" data-step="10" aria-label="Play earlier">‹ Earlier</button>
+                        <output id="latencyOut">In sync</output>
+                        <button type="button" class="btn small" data-step="-10" aria-label="Play later">Later ›</button>
+                    </div>
+                </section>
+
+                <details class="diag" id="diag">
+                    <summary>Sync details</summary>
+                    <dl id="diagList"></dl>
+                </details>
+
+                <a class="new-song" href="./" id="newSong">＋ Play a different song</a>
+            </main>
+        </div>
+    </body>
+</html>
