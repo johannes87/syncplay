@@ -26,12 +26,15 @@ export function probeDuration(url: string, timeoutMs = 15_000): Promise<number> 
   })
 }
 
-/** Can we download the file directly (needed for precise mode)? */
-export async function probeCors(url: string): Promise<boolean> {
+/**
+ * Can we download the file directly (needed for precise mode), and how big is it?
+ * Returns null if cross-origin access (CORS) is not allowed.
+ */
+export async function probeDirect(url: string): Promise<{ bytes: number | null } | null> {
   try {
-    await fetch(url, { method: 'HEAD', credentials: 'omit' })
-    return true
+    const res = await fetch(url, { method: 'HEAD', credentials: 'omit' })
+    return { bytes: Number(res.headers.get('content-length')) || null }
   } catch {
-    return false
+    return null
   }
 }

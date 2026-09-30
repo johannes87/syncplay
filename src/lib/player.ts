@@ -15,7 +15,7 @@ import type { ClockSync } from './clock.ts'
 import { type Session, sessionKey, timelinePosition } from './session.ts'
 import { LATENCY_KEY, load, save } from './storage.ts'
 
-const MAX_PRECISE_BYTES = 40 * 1024 * 1024 // decoded audio needs ~10x this in RAM
+export const MAX_PRECISE_BYTES = 40 * 1024 * 1024 // decoded audio needs ~10x this in RAM
 
 export type EngineState = 'idle' | 'loading' | 'waiting' | 'playing' | 'ended' | 'error'
 export type PlayMode = 'precise' | 'basic'
