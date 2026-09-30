@@ -1,6 +1,3 @@
-import { ClockSync } from './clock.js';
-import { SyncEngine } from './player.js';
-
 const $ = (id) => document.getElementById(id);
 
 const clock = new ClockSync();

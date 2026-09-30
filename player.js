@@ -260,7 +260,7 @@ class BasicPlayer {
     }
 }
 
-export class SyncEngine extends EventTarget {
+class SyncEngine extends EventTarget {
     constructor(clock) {
         super();
         this.clock = clock;

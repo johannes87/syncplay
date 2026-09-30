@@ -9,7 +9,7 @@ Play one song on many devices at exactly the same moment, even when their clocks
 ## Deploy
 
 It's static files with no build step. Copy `index.html`, `app.js`, `clock.js`, `player.js` and `style.css`
-into any folder on a web server (served over HTTP(S); ES modules don't load from `file://`).
+into any folder on a web server. For a quick local try, you can also just open `index.html` in the browser.
 
 ## How the sync works
 

@@ -16,7 +16,7 @@
 
 const rand = () => Math.random().toString(36).slice(2);
 
-export const TIME_SOURCES = [
+const TIME_SOURCES = [
     {
         // Answers "1790806668.777" (seconds, ms precision), sends CORS and
         // Timing-Allow-Origin, and is served from NTP-disciplined edge servers.
@@ -33,7 +33,7 @@ export const TIME_SOURCES = [
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-export class ClockSync extends EventTarget {
+class ClockSync extends EventTarget {
     constructor({ sources = TIME_SOURCES, windowMs = 180_000 } = {}) {
         super();
         this.sources = sources;
