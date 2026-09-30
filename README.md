@@ -24,6 +24,14 @@ npm run preview   # serve the production build locally
 `npm run build`, then copy the contents of `dist/` into any folder on any web server (e.g. Apache).
 It is a static single-page app with relative paths, so no server-side code or rewrite rules are needed.
 
+`npm run deploy` does both steps with rsync. It reads the target from `deploy.local` (ignored by git)
+or the `DEPLOY_TARGET` environment variable:
+
+```sh
+echo 'DEPLOY_TARGET=example.com:www/syncplay/' > deploy.local
+npm run deploy
+```
+
 ## Code map
 
 - `src/lib/clock.ts`: client-side NTP (framework-independent)
