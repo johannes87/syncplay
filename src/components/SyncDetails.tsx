@@ -21,13 +21,15 @@ export function SyncDetails({ open, onOpenChange }: Props) {
 
   const rows: [string, string][] = [['Time server', clock.source]]
   if (clock.rtt != null) {
-    rows.push(['This device’s clock', `${fmtMs(clock.offset)} ${clock.offset > 0 ? 'behind' : 'ahead'} (corrected)`])
-    rows.push(['Network round trip', `${clock.rtt.toFixed(1)} ms · ${clock.samples} samples`])
+    rows.push(
+      ['This device’s clock', `${fmtMs(clock.offset)} ${clock.offset > 0 ? 'behind' : 'ahead'} (corrected)`],
+      ['Network round trip', `${clock.rtt.toFixed(1)} ms · ${clock.samples} samples`],
+    )
   }
   if (e.mode) {
     rows.push([
       'Audio mode',
-      e.mode === 'precise' ? 'Precise: Web Audio, sample-accurate' : `Basic: media element. ${e.fallbackReason ?? ''}`,
+      e.mode === 'precise' ? `Precise: ${e.detail}` : `Basic: media element. ${e.fallbackReason ?? ''}`,
     ])
   }
   const latency = engine.outputLatencyMs

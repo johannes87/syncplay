@@ -1,70 +1,43 @@
 // Plays a track so that it lines up with a shared timeline (see session.ts).
 //
 // Two ways to play:
-//  - precise: download + decode with Web Audio and schedule sample-accurately
-//    against the moment the audio actually leaves the speaker. Needs the file
-//    to be fetchable (same origin, or CORS enabled on its server).
+//  - precise (stream-player.ts): decode with Web Audio and schedule
+//    sample-accurately against the moment the audio leaves the speaker. Needs
+//    the file to be fetchable (same origin, or CORS enabled on its server).
 //  - basic: an <audio> element. Works with any playable URL, but the browser
-//    only tells us roughly where it is, so expect ~10-30 ms of wobble.
-//
-// Both are kept on time by a control loop that measures the real playback
-// error and corrects it with tiny playbackRate changes (inaudible), or with a
-// jump when the error is too large.
+//    only tells us roughly where it is, so expect ~10-30 ms of wobble. Kept on
+//    time by a control loop that nudges playbackRate, or jumps when far off.
 
+import { type Player, type Tuning, outputClock, outputLatency } from './audio.ts'
 import type { ClockSync } from './clock.ts'
 import { type Session, sessionKey, timelinePosition } from './session.ts'
 import { LATENCY_KEY, load, save } from './storage.ts'
 
-export const MAX_PRECISE_BYTES = 40 * 1024 * 1024 // decoded audio needs ~10x this in RAM
+export type { PlayMode } from './audio.ts'
 
 export type EngineState = 'idle' | 'loading' | 'waiting' | 'playing' | 'ended' | 'error'
-export type PlayMode = 'precise' | 'basic'
-
 export interface EngineSnapshot {
   state: EngineState
   /** Download progress 0..1, or null if unknown. */
   progress: number | null
   error: string | null
-  mode: PlayMode | null
+  mode: Player['mode'] | null
+  /** What exactly is playing, for the sync details. */
+  detail: string | null
   fallbackReason: string | null
   latencyMs: number
   duration: number | null
 }
 
-interface Tuning {
-  /** Jump instead of speed-correcting above this error, seconds. */
-  hard: number
-  /** Ignore errors below this, seconds. */
-  dead: number
-  /** Maximum speed deviation, e.g. 0.004 = ±0.4 %. */
-  maxRate: number
-  /** Smoothing factor for the measured error. */
-  alpha: number
-  /** Ignore measurements for this long after a jump. */
-  settleMs: number
-  /** How far ahead to schedule a jump. */
-  leadMs: number
-}
-
-interface Player {
-  readonly mode: PlayMode
-  readonly tuning: Tuning
-  readonly duration: number
-  readonly rate: number
-  onended?: () => void
-  load(url: string, signal: AbortSignal, onProgress: (p: number | null) => void): Promise<void>
-  /** Make song position `pos` audible at reference time `global`. */
-  schedule(global: number, pos: number, loop: boolean): void
-  /** Which song position is audible, and at what reference time. */
-  sample(): { global: number; pos: number } | null
-  setRate(rate: number): void
-  stop(): void
-}
-
 const clamp = (x: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, x))
 
-function outputLatency(ctx: AudioContext): number {
-  return (ctx.baseLatency || 0) + (ctx.outputLatency || 0)
+function describeLoadError(e: unknown): string {
+  const message = e instanceof Error ? e.message : String(e)
+  // Browsers only say "Failed to fetch" (or similar) when CORS blocks a request.
+  if (e instanceof TypeError || /fetch|cors|network|load failed/i.test(message)) {
+    return 'The file’s server doesn’t allow cross-origin access (CORS).'
+  }
+  return /[.!?]$/.test(message) ? message : `${message}.`
 }
 
 function silentWavUrl(seconds = 0.5, rate = 8000): string {
@@ -87,159 +60,12 @@ function silentWavUrl(seconds = 0.5, rate = 8000): string {
   return URL.createObjectURL(new Blob([view.buffer], { type: 'audio/wav' }))
 }
 
-class PrecisePlayer implements Player {
-  readonly mode = 'precise'
-  readonly tuning: Tuning = { hard: 0.03, dead: 0.0015, maxRate: 0.004, alpha: 0.35, settleMs: 400, leadMs: 150 }
-  onended?: () => void
-  #ctx: AudioContext
-  #out: AudioNode
-  #clock: ClockSync
-  #buffer: AudioBuffer | null = null
-  #src: AudioBufferSourceNode | null = null
-  #gain: GainNode | null = null
-  #anchor: { t: number; pos: number; rate: number } | null = null
-
-  constructor(ctx: AudioContext, out: AudioNode, clock: ClockSync) {
-    this.#ctx = ctx
-    this.#out = out
-    this.#clock = clock
-  }
-
-  async load(url: string, signal: AbortSignal, onProgress: (p: number | null) => void) {
-    const res = await fetch(url, { signal, credentials: 'omit' })
-    if (!res.ok) throw new Error(`The file’s server answered ${res.status}`)
-    const total = Number(res.headers.get('content-length')) || 0
-    if (total > MAX_PRECISE_BYTES) throw new Error('The file is too large to decode in memory')
-
-    let data: ArrayBuffer
-    if (!res.body) {
-      data = await res.arrayBuffer()
-    } else {
-      const reader = res.body.getReader()
-      const chunks: Uint8Array[] = []
-      let received = 0
-      for (;;) {
-        const { done, value } = await reader.read()
-        if (done) break
-        chunks.push(value)
-        received += value.length
-        if (received > MAX_PRECISE_BYTES) {
-          void reader.cancel()
-          throw new Error('The file is too large to decode in memory')
-        }
-        onProgress(total ? Math.min(received / total, 0.99) : null)
-      }
-      const bytes = new Uint8Array(received)
-      let at = 0
-      for (const c of chunks) {
-        bytes.set(c, at)
-        at += c.length
-      }
-      data = bytes.buffer
-    }
-    onProgress(1)
-    this.#buffer = await this.#ctx.decodeAudioData(data)
-  }
-
-  get duration() {
-    return this.#buffer?.duration ?? 0
-  }
-
-  get rate() {
-    return this.#anchor?.rate ?? 1
-  }
-
-  /** AudioContext time at which a sample must be scheduled to be heard at reference time `global`. */
-  #ctxTime(global: number): number {
-    const ts = this.#ctx.getOutputTimestamp?.()
-    if (ts?.performanceTime && ts.contextTime != null) {
-      return ts.contextTime + (this.#clock.toPerf(global) - ts.performanceTime) / 1000
-    }
-    return this.#ctx.currentTime + (global - this.#clock.now()) / 1000 - outputLatency(this.#ctx)
-  }
-
-  schedule(global: number, pos: number, loop: boolean) {
-    const ctx = this.#ctx
-    let when = this.#ctxTime(global)
-    const earliest = ctx.currentTime + 0.02
-    if (when < earliest) {
-      pos += earliest - when
-      when = earliest
-    }
-    const fade = 0.008
-    const src = ctx.createBufferSource()
-    const gain = ctx.createGain()
-    src.buffer = this.#buffer
-    src.loop = loop
-    src.connect(gain).connect(this.#out)
-    if (this.#src && this.#gain) {
-      // Crossfade from the old source to avoid a click when re-syncing.
-      this.#gain.gain.setValueAtTime(1, when)
-      this.#gain.gain.linearRampToValueAtTime(0, when + fade)
-      this.#src.onended = null
-      this.#src.stop(when + fade + 0.01)
-      gain.gain.setValueAtTime(0, when)
-      gain.gain.linearRampToValueAtTime(1, when + fade)
-    }
-    src.onended = () => {
-      if (this.#src === src) this.onended?.()
-    }
-    src.start(when, loop ? pos % this.duration : Math.min(pos, this.duration))
-    this.#src = src
-    this.#gain = gain
-    this.#anchor = { t: when, pos, rate: 1 }
-  }
-
-  #unwrapped(c: number): number {
-    const a = this.#anchor!
-    return a.pos + (c - a.t) * a.rate
-  }
-
-  sample() {
-    if (!this.#anchor || !this.#src) return null
-    const ts = this.#ctx.getOutputTimestamp?.()
-    let c: number
-    let global: number
-    if (ts?.performanceTime && ts.contextTime != null) {
-      c = ts.contextTime
-      global = this.#clock.fromPerf(ts.performanceTime)
-    } else {
-      c = this.#ctx.currentTime
-      global = this.#clock.now() + outputLatency(this.#ctx) * 1000
-    }
-    if (c < this.#anchor.t + 0.05) return null
-    let pos = this.#unwrapped(c)
-    if (this.#src.loop) pos %= this.duration
-    return { global, pos }
-  }
-
-  setRate(rate: number) {
-    const c = this.#ctx.currentTime
-    if (!this.#anchor || !this.#src || c < this.#anchor.t) return
-    if (Math.abs(rate - this.#anchor.rate) < 0.00005) return
-    this.#anchor = { t: c, pos: this.#unwrapped(c), rate }
-    this.#src.playbackRate.setValueAtTime(rate, c)
-  }
-
-  stop() {
-    if (this.#src) {
-      this.#src.onended = null
-      try {
-        this.#src.stop()
-      } catch {
-        // never started
-      }
-      this.#src.disconnect()
-    }
-    this.#src = null
-    this.#anchor = null
-  }
-}
-
 class BasicPlayer implements Player {
   readonly mode = 'basic'
   readonly tuning: Tuning = { hard: 0.12, dead: 0.008, maxRate: 0.02, alpha: 0.2, settleMs: 1500, leadMs: 0 }
+  readonly detail = 'Media element'
   onended?: () => void
+  onerror?: (error: Error) => void
   rate = 1
   #el: HTMLAudioElement
   #ctx: AudioContext
@@ -354,6 +180,7 @@ export class SyncEngine {
       progress: null,
       error: null,
       mode: null,
+      detail: null,
       fallbackReason: null,
       latencyMs: Number(load(LATENCY_KEY)) || 0,
       duration: null,
@@ -393,6 +220,7 @@ export class SyncEngine {
       this.analyser.fftSize = 1024
       this.analyser.smoothingTimeConstant = 0.5
       this.#master.connect(this.analyser).connect(ctx.destination)
+      outputClock(ctx) // start measuring output timing right away
       this.#el = new Audio()
       this.#el.setAttribute('playsinline', '')
       this.#silence = silentWavUrl()
@@ -423,31 +251,47 @@ export class SyncEngine {
     this.#update({ state: 'loading', progress: null, error: null, fallbackReason: null })
     const onProgress = (progress: number | null) => this.#update({ progress })
 
-    let player: Player = new PrecisePlayer(this.ctx, this.#master!, this.clock)
-    try {
-      await player.load(session.url, abort.signal, onProgress)
-    } catch (e) {
+    // Try precise first, fall back to basic.
+    const candidates: (() => Promise<Player>)[] = [
+      async () => {
+        // Loaded on demand: it brings the media library along.
+        const { StreamPlayer } = await import('./stream-player.ts')
+        return new StreamPlayer(this.ctx!, this.#master!, this.clock)
+      },
+      async () => new BasicPlayer(this.#el!, this.ctx!, this.clock),
+    ]
+    const reasons: string[] = []
+    let player: Player | null = null
+    for (const create of candidates) {
+      const candidate = await create()
       if (abort.signal.aborted) return
-      console.warn('Precise mode unavailable, falling back to basic:', e)
-      const fallbackReason =
-        e instanceof TypeError
-          ? 'The file’s server doesn’t allow cross-origin access (CORS)'
-          : (e as Error).message
-      this.#update({ fallbackReason })
-      player = new BasicPlayer(this.#el!, this.ctx, this.clock)
       try {
-        await player.load(session.url, abort.signal, onProgress)
-      } catch (e2) {
+        await candidate.load(session.url, abort.signal, onProgress)
+        await candidate.prepare?.(this.#readyPosition(session, candidate.duration, this.clock.now() + 2000))
+        player = candidate
+        break
+      } catch (e) {
+        candidate.stop()
         if (abort.signal.aborted) return
-        this.#update({ state: 'error', error: (e2 as Error).message })
-        return
+        console.warn(`${candidate.mode} mode unavailable:`, e)
+        reasons.push(describeLoadError(e))
       }
     }
+    if (!player) {
+      this.#update({ state: 'error', error: reasons.at(-1) ?? 'Can’t play this link' })
+      return
+    }
+    if (player.mode === 'basic') this.#update({ fallbackReason: reasons.join(' ') })
 
     this.#player = player
     player.onended = () => {
       this.#stopLoop()
       this.#update({ state: 'ended' })
+    }
+    player.onerror = (e) => {
+      this.#player?.stop()
+      this.#stopLoop()
+      this.#update({ state: 'error', error: describeLoadError(e) })
     }
     if (player.mode === 'precise') {
       // Keep a silent media element running: keeps iOS in "playback" audio mode.
@@ -457,7 +301,10 @@ export class SyncEngine {
     if ('mediaSession' in navigator) {
       navigator.mediaSession.metadata = new MediaMetadata({ title: session.title, artist: 'SyncPlay' })
     }
-    this.#update({ mode: player.mode, duration: player.duration })
+    // Place the first piece only once the output's timing is known precisely.
+    await outputClock(this.ctx).settled()
+    if (abort.signal.aborted) return
+    this.#update({ mode: player.mode, detail: player.detail, duration: player.duration })
     this.#arm()
   }
 
@@ -473,7 +320,7 @@ export class SyncEngine {
       this.#el.pause()
       this.#el.loop = false
     }
-    this.#update({ state: 'idle', progress: null, error: null, mode: null, fallbackReason: null, duration: null })
+    this.#update({ state: 'idle', progress: null, error: null, mode: null, detail: null, fallbackReason: null, duration: null })
   }
 
   setLatency(latencyMs: number) {
@@ -496,6 +343,12 @@ export class SyncEngine {
 
   #expected(global: number) {
     return timelinePosition(this.session!, global, this.#player!.duration, this.#snapshot.latencyMs)
+  }
+
+  /** Where to get ready to play from: the position shortly after `global`, or the start position. */
+  #readyPosition(session: Session, duration: number, global: number) {
+    const at = Math.max(global, session.start - this.#snapshot.latencyMs)
+    return timelinePosition(session, at, duration, this.#snapshot.latencyMs) ?? 0
   }
 
   #arm() {

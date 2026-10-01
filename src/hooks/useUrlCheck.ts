@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { fmtTime, isHttpUrl } from '../lib/format.ts'
-import { MAX_PRECISE_BYTES } from '../lib/player.ts'
-import { probeDirect, probeDuration } from '../lib/probe.ts'
+import { probeCors, probeDuration } from '../lib/probe.ts'
 
 export interface UrlCheck {
   state: '' | 'checking' | 'ok' | 'warn' | 'bad'
@@ -11,7 +10,7 @@ export interface UrlCheck {
 const EMPTY: UrlCheck = { state: '', text: '' }
 
 async function check(url: string): Promise<UrlCheck> {
-  const [duration, direct] = await Promise.allSettled([probeDuration(url), probeDirect(url)])
+  const [duration, cors] = await Promise.allSettled([probeDuration(url), probeCors(url)])
   if (duration.status === 'rejected') {
     return { state: 'bad', text: 'Your browser can’t play this link. Is it a direct link to an audio file?' }
   }
@@ -19,16 +18,7 @@ async function check(url: string): Promise<UrlCheck> {
     return { state: 'bad', text: 'This looks like a live stream. SyncPlay needs a file with a fixed length.' }
   }
   const length = fmtTime(duration.value)
-  const file = direct.status === 'fulfilled' ? direct.value : null
-  if (file?.bytes && file.bytes > MAX_PRECISE_BYTES) {
-    return {
-      state: 'warn',
-      text:
-        `✓ Playable · ${length} · basic sync only: the file is too large (${Math.round(file.bytes / 1024 ** 2)} MB) ` +
-        `for precise mode. Beats may be a few ms apart.`,
-    }
-  }
-  if (file) {
+  if (cors.status === 'fulfilled' && cors.value) {
     return { state: 'ok', text: `✓ Playable · ${length} · precise sync` }
   }
   return {
