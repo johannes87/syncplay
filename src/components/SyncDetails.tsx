@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useReducer } from 'react';
+import { Fragment, useEffect, useReducer, useRef, useState } from 'react';
 import { useClock, useEngine } from '@/hooks/stores.ts';
 import { fmtMs } from '@/lib/format.ts';
 import { engine } from '@/lib/instances.ts';
@@ -39,6 +39,30 @@ export function SyncDetails({ open, onOpenChange }: Props) {
     }
     if (e.latencyMs) rows.push(['Manual nudge', `${e.latencyMs} ms`]);
 
+    const [copyLabel, setCopyLabel] = useState('Copy details');
+    const resetTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+    useEffect(() => () => clearTimeout(resetTimer.current), []);
+
+    /** Copies the details as plain text, with what else helps when reporting a sync problem. */
+    const copy = async () => {
+        const lines = [
+            'SyncPlay sync details',
+            ...rows.map(([k, v]) => `${k}: ${v}`),
+            `State: ${e.state}${e.error ? ` (${e.error})` : ''}`,
+            ...(engine.ctx ? [`Audio sample rate: ${engine.ctx.sampleRate / 1000} kHz`] : []),
+            `Browser: ${navigator.userAgent}`,
+            `Copied at: ${new Date().toISOString()}`,
+        ];
+        try {
+            await navigator.clipboard.writeText(lines.join('\n'));
+            setCopyLabel('Copied!');
+        } catch {
+            setCopyLabel('Couldn’t copy');
+        }
+        clearTimeout(resetTimer.current);
+        resetTimer.current = setTimeout(() => setCopyLabel('Copy details'), 1800);
+    };
+
     return (
         <details className="diag" id="sync-details" open={open} onToggle={(ev) => onOpenChange(ev.currentTarget.open)}>
             <summary>Sync details</summary>
@@ -50,6 +74,9 @@ export function SyncDetails({ open, onOpenChange }: Props) {
                     </Fragment>
                 ))}
             </dl>
+            <button type="button" className="diag-copy" onClick={copy}>
+                {copyLabel}
+            </button>
         </details>
     );
 }
