@@ -1,6 +1,6 @@
 import { QRCodeSVG } from 'qrcode.react';
 import { useEffect, useRef, useState } from 'react';
-import { type Session, sessionLink } from '../lib/session.ts';
+import { sessionLink, type Session } from '../lib/session.ts';
 
 const COPY_SHORTCUT = /Mac|iPhone|iPad/.test(navigator.userAgent) ? '⌘C' : 'Ctrl+C';
 

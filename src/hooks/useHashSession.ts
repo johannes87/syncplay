@@ -1,5 +1,5 @@
 import { useMemo, useSyncExternalStore } from 'react';
-import { type Session, parseSession, sessionLink } from '../lib/session.ts';
+import { parseSession, sessionLink, type Session } from '../lib/session.ts';
 
 // The session lives in the URL hash, so invite links, reloads and the back
 // button all just work without a router.

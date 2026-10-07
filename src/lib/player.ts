@@ -8,9 +8,9 @@
 //    only tells us roughly where it is, so expect ~10-30 ms of wobble. Kept on
 //    time by a control loop that nudges playbackRate, or jumps when far off.
 
-import { type Player, type Tuning, outputClock, outputLatency } from './audio.ts';
+import { outputClock, outputLatency, type Player, type Tuning } from './audio.ts';
 import type { ClockSync } from './clock.ts';
-import { type Session, sessionKey, timelinePosition } from './session.ts';
+import { sessionKey, timelinePosition, type Session } from './session.ts';
 import { LATENCY_KEY, load, save } from './storage.ts';
 
 export type { PlayMode } from './audio.ts';

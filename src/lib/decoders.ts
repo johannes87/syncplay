@@ -8,7 +8,7 @@
 // For MP3 and FLAC we therefore use the same WebAssembly decoder on every
 // device. The decoders are only downloaded when such a file is played.
 
-import { type AudioCodec, AudioSample, CustomAudioDecoder, type EncodedPacket, registerDecoder } from 'mediabunny';
+import { AudioSample, CustomAudioDecoder, registerDecoder, type AudioCodec, type EncodedPacket } from 'mediabunny';
 
 interface Decoded {
     channelData: Float32Array[];

@@ -5,7 +5,7 @@ import { useProbedDuration } from '../hooks/useProbedDuration.ts';
 import { useWakeLock } from '../hooks/useWakeLock.ts';
 import { hostFromUrl } from '../lib/format.ts';
 import { clock, engine } from '../lib/instances.ts';
-import { type Session, isOver } from '../lib/session.ts';
+import { isOver, type Session } from '../lib/session.ts';
 import { LAST_URL_KEY, save } from '../lib/storage.ts';
 import { ShareCard } from './ShareCard.tsx';
 import { Stage } from './Stage.tsx';

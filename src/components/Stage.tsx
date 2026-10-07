@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { fmtTime } from '../lib/format.ts';
 import { clock, engine } from '../lib/instances.ts';
-import { type Session, isOver } from '../lib/session.ts';
+import { isOver, type Session } from '../lib/session.ts';
 
 interface Props {
     session: Session;
