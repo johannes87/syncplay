@@ -1,3 +1,6 @@
+import { mkdirSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { defineConfig, devices } from '@playwright/test';
 
 const chrome = {
@@ -7,6 +10,21 @@ const chrome = {
     launchOptions: { args: ['--autoplay-policy=no-user-gesture-required', '--mute-audio'] },
 };
 const webkit = devices['Desktop Safari'];
+// Playwright's Firefox exits with "Could not find profile folder" when macOS keeps it out of
+// an installed Firefox's ~/Library/Application Support/Firefox, so it gets a home of its own.
+const firefoxHome = join(tmpdir(), 'syncplay-e2e-firefox-home');
+mkdirSync(firefoxHome, { recursive: true });
+const firefox = {
+    ...devices['Desktop Firefox'],
+    launchOptions: {
+        env: { ...process.env, CFFIXED_USER_HOME: firefoxHome },
+        firefoxUserPrefs: {
+            'media.autoplay.default': 0,
+            'media.autoplay.blocking_policy': 0,
+            'media.volume_scale': '0.0',
+        },
+    },
+};
 
 // End-to-end tests: npm run test:e2e (needs Google Chrome and ffmpeg; see e2e/).
 export default defineConfig({
@@ -20,6 +38,7 @@ export default defineConfig({
     projects: [
         { name: 'chrome', testIgnore: 'sync.e2e.ts', use: chrome },
         { name: 'webkit', testIgnore: 'sync.e2e.ts', use: webkit },
+        { name: 'firefox', testIgnore: 'sync.e2e.ts', use: firefox },
         // Real-time playback: one test per browser at a time, after the rest, because a busy
         // machine disturbs audio timing in headless browsers. One retry absorbs a rare
         // disturbance; a real regression fails twice.
@@ -29,7 +48,7 @@ export default defineConfig({
             use: chrome,
             workers: 1,
             retries: 1,
-            dependencies: ['chrome', 'webkit'],
+            dependencies: ['chrome', 'webkit', 'firefox'],
         },
         {
             name: 'webkit-sync',
@@ -37,7 +56,15 @@ export default defineConfig({
             use: webkit,
             workers: 1,
             retries: 1,
-            dependencies: ['chrome', 'webkit'],
+            dependencies: ['chrome', 'webkit', 'firefox'],
+        },
+        {
+            name: 'firefox-sync',
+            testMatch: 'sync.e2e.ts',
+            use: firefox,
+            workers: 1,
+            retries: 1,
+            dependencies: ['chrome', 'webkit', 'firefox'],
         },
     ],
     webServer: [

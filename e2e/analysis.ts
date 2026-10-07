@@ -94,6 +94,7 @@ const percentile = (sorted: number[], p: number) => sorted[Math.min(sorted.lengt
 export const TOLERANCE = {
     chromium: { median: 0.3, p95: 0.5 },
     webkit: { median: 1.5, p95: 3 },
+    firefox: { median: 1.5, p95: 3 },
 };
 
 export function expectInSync(windows: Window[], browser: string, minWindows = 25) {

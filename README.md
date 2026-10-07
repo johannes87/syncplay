@@ -17,13 +17,13 @@ npm test          # unit tests (Vitest)
 npm run lint      # oxlint
 npm run build     # type-check and build into dist/
 npm run preview   # serve the production build locally
-npm run test:e2e  # end-to-end tests in Chrome and WebKit (~1.5 min)
+npm run test:e2e  # end-to-end tests in Chrome, WebKit and Firefox (~2 min)
 ```
 
 ### End-to-end tests
 
 `npm run test:e2e` needs Google Chrome and ffmpeg (`brew install ffmpeg`) and, once,
-`npx playwright install webkit`. The first run generates test audio into `e2e/.fixtures` (~1 min).
+`npx playwright install webkit firefox`. The first run generates test audio into `e2e/.fixtures` (~1 min).
 Nothing plays through the speakers.
 
 - `sync.e2e.ts`: records what the player really outputs and checks it against the shared
