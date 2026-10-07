@@ -82,7 +82,7 @@ npm run deploy
   - Decoding from the very start of a file is slightly off for some formats (Opus by 6.5 ms, Vorbis
     by 23 ms), so the first piece is lined up with a decode that starts further in (`align.ts`).
 - **Nudge**: Bluetooth speakers add delay the browser can't see. Each device can shift itself
-  earlier or later in 10 ms steps, and the setting is remembered per device.
+  earlier or later in 1 ms steps (10 ms while holding the button), and the setting is remembered per device.
 
 ## Precise vs. basic mode
 

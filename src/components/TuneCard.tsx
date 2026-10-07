@@ -36,13 +36,13 @@ export function TuneCard() {
                 <span>Bluetooth speakers add delay. Nudge this device until the beats line up.</span>
             </div>
             <div className="stepper">
-                <StepButton step={10} label="Play earlier" onStep={onStep}>
+                <StepButton step={1} label="Play earlier" onStep={onStep}>
                     ‹ Earlier
                 </StepButton>
                 <output>
                     {pending === 0 ? 'In sync' : `${Math.abs(pending)} ms ${pending > 0 ? 'earlier' : 'later'}`}
                 </output>
-                <StepButton step={-10} label="Play later" onStep={onStep}>
+                <StepButton step={-1} label="Play later" onStep={onStep}>
                     Later ›
                 </StepButton>
             </div>
@@ -57,7 +57,7 @@ interface StepButtonProps {
     children: ReactNode;
 }
 
-/** Tap to step once, hold to keep stepping. */
+/** Tap to step once, hold to keep stepping ten times as far. */
 function StepButton({ step, label, onStep, children }: StepButtonProps) {
     const hold = useRef<ReturnType<typeof setInterval>>(undefined);
     const stop = () => clearInterval(hold.current);
@@ -73,7 +73,7 @@ function StepButton({ step, label, onStep, children }: StepButtonProps) {
                 onStep(step);
                 let n = 0;
                 stop();
-                hold.current = setInterval(() => ++n > 4 && onStep(step), 90);
+                hold.current = setInterval(() => ++n > 4 && onStep(10 * step), 90);
             }}
             onPointerUp={stop}
             onPointerLeave={stop}
