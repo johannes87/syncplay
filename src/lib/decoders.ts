@@ -36,7 +36,9 @@ abstract class WasmAudioDecoder extends CustomAudioDecoder {
         const { channelData, samplesDecoded, sampleRate } = await this.#decoder!.decodeFrames([packet.data]);
         if (!samplesDecoded) return;
         const planar = new Float32Array(samplesDecoded * channelData.length);
-        channelData.forEach((channel, i) => planar.set(channel.subarray(0, samplesDecoded), i * samplesDecoded));
+        for (const [i, channel] of channelData.entries()) {
+            planar.set(channel.subarray(0, samplesDecoded), i * samplesDecoded);
+        }
         this.onSample(
             new AudioSample({
                 data: planar,
