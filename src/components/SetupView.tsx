@@ -15,7 +15,7 @@ const DELAYS = [
 
 export function SetupView() {
     const [url, setUrl] = useState(() => load(LAST_URL_KEY) ?? '');
-    const [delay, setDelay] = useState(30);
+    const [delay, setDelay] = useState(DELAYS[0].seconds);
     const [position, setPosition] = useState('');
     const [loop, setLoop] = useState(false);
     const [submitError, setSubmitError] = useState<string | null>(null);
