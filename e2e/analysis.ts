@@ -89,12 +89,13 @@ const percentile = (sorted: number[], p: number) => sorted[Math.min(sorted.lengt
 
 /**
  * Tolerances, ms. Safari's timing moves in steps of one render quantum (128 frames,
- * 1.33 ms at 96 kHz); real bugs found so far were 4 ms and more.
+ * 1.33 ms at 96 kHz), and Firefox's is off by up to ~2.5 ms either way, differently on
+ * each run; real bugs found so far were 4 ms and more.
  */
 export const TOLERANCE = {
     chromium: { median: 0.3, p95: 0.5 },
     webkit: { median: 1.5, p95: 3 },
-    firefox: { median: 1.5, p95: 3 },
+    firefox: { median: 3, p95: 4 },
 };
 
 export function expectInSync(windows: Window[], browser: string, minWindows = 25) {

@@ -240,9 +240,12 @@ export class SyncEngine {
         } catch {
             // not supported
         }
-        // iOS unlocks each media element separately, so play it once now.
-        this.#el!.src = this.#silence!;
-        void this.#el!.play().catch(() => {});
+        // iOS unlocks each media element separately, so play it once now. Not in Firefox: it
+        // needs no unlocking, and a sound ending while the AudioContext starts can freeze the tab.
+        if (!navigator.userAgent.includes('Firefox')) {
+            this.#el!.src = this.#silence!;
+            void this.#el!.play().catch(() => {});
+        }
     }
 
     async join(session: Session) {

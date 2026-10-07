@@ -18,7 +18,7 @@ export interface Format {
      * Where the app's timeline sits relative to ffmpeg's decode of the file, in
      * samples at the file's rate (measured; same in Chrome and Safari).
      * MP3: ffmpeg skips the LAME encoder delay (576) + decoder delay (529), our timeline keeps them.
-     * Opus: 312-sample pre-skip. Vorbis: one 1024-sample block.
+     * Opus: 312-sample pre-skip.
      */
     offset: number;
 }
@@ -30,7 +30,7 @@ export const FORMATS: Format[] = [
     // synthesizes it with its own random numbers, so samples wouldn't be comparable.
     { file: 'aac.m4a', ffmpegArgs: ['-c:a', 'aac', '-aac_pns', '0', '-b:a', '192k'], offset: 0 },
     { file: 'opus.ogg', ffmpegArgs: ['-c:a', 'libopus', '-b:a', '128k'], offset: 312 },
-    { file: 'vorbis.ogg', ffmpegArgs: ['-c:a', 'vorbis', '-strict', '-2', '-q:a', '5'], offset: 1024 },
+    { file: 'vorbis.ogg', ffmpegArgs: ['-c:a', 'vorbis', '-strict', '-2', '-q:a', '5'], offset: 0 },
     { file: 'flac.flac', ffmpegArgs: ['-c:a', 'flac'], offset: 0 },
     { file: 'wav.wav', ffmpegArgs: ['-c:a', 'pcm_s16le'], offset: 0 },
 ];

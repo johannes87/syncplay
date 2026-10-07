@@ -1,12 +1,13 @@
 // Every device must turn the same file into the same samples at the same
 // timestamps, or they drift apart by the difference.
 //
-// Measured with Chrome and Safari's WebCodecs decoders on identical packets:
-//  - AAC, Opus, Vorbis and PCM: identical timing, so we use the browser's decoder.
+// Measured with the browsers' WebCodecs decoders on identical packets:
+//  - AAC, Opus and PCM: identical timing, so we use the browser's decoder.
 //  - MP3: Safari drops the 529-sample (12 ms) decoder delay, Chrome doesn't.
 //  - FLAC: Safari fails to decode it.
-// For MP3 and FLAC we therefore use the same WebAssembly decoder on every
-// device. The decoders are only downloaded when such a file is played.
+//  - Vorbis: Firefox outputs no audio.
+// For MP3, FLAC and Vorbis we therefore use the same WebAssembly decoder on
+// every device. The decoders are only downloaded when such a file is played.
 
 import { AudioSample, CustomAudioDecoder, registerDecoder, type AudioCodec, type EncodedPacket } from 'mediabunny';
 
@@ -80,6 +81,58 @@ class FlacDecoder extends WasmAudioDecoder {
     }
 }
 
+/**
+ * The identification and setup headers from a WebCodecs Vorbis description: the byte 2,
+ * the lengths of the first two headers (each a run of 255s plus a final byte), then the
+ * identification, comment and setup headers.
+ */
+function vorbisHeaders(description: AllowSharedBufferSource | undefined) {
+    if (!description) throw new Error('The Vorbis headers are missing');
+    const bytes = ArrayBuffer.isView(description)
+        ? new Uint8Array(description.buffer, description.byteOffset, description.byteLength)
+        : new Uint8Array(description);
+    let at = 1;
+    const lengths = [0, 0];
+    for (const i of [0, 1]) {
+        while (bytes[at] === 255) lengths[i] += bytes[at++];
+        lengths[i] += bytes[at++];
+    }
+    const identification = bytes.subarray(at, at + lengths[0]);
+    const setup = bytes.subarray(at + lengths[0] + lengths[1]);
+    return { identification, setup };
+}
+
+class VorbisDecoder extends WasmAudioDecoder {
+    static supports(codec: AudioCodec) {
+        return codec === 'vorbis';
+    }
+
+    protected async create() {
+        const { OggVorbisDecoder } = await import('@wasm-audio-decoders/ogg-vorbis');
+        const decoder = new OggVorbisDecoder();
+        const { identification, setup } = vorbisHeaders(this.config.description);
+        // The decoder wants Ogg pages, but only reads these fields of them. It takes the
+        // headers from the first pages it sees.
+        const page = (data: Uint8Array, packets: Uint8Array[]) => ({
+            data,
+            codecFrames: packets.map((packet) => ({ data: packet, header: { vorbisSetup: setup } })),
+        });
+        let pages = [page(identification, [])];
+        return {
+            ready: decoder.ready,
+            decodeFrames(frames: Uint8Array[]) {
+                pages.push(page(new Uint8Array(), frames));
+                const decoded = decoder.decodeOggPages(
+                    pages as unknown as Parameters<typeof decoder.decodeOggPages>[0],
+                );
+                pages = [];
+                return decoded;
+            },
+            free: () => decoder.free(),
+        };
+    }
+}
+
 let registered = false;
 
 export function registerDecoders() {
@@ -87,4 +140,5 @@ export function registerDecoders() {
     registered = true;
     registerDecoder(Mp3Decoder);
     registerDecoder(FlacDecoder);
+    registerDecoder(VorbisDecoder);
 }

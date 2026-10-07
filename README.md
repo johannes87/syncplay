@@ -73,9 +73,9 @@ npm run deploy
   - *Basic mode*: falls back to an `<audio>` element, kept on time by a control loop that measures the
     playback error and corrects it with small speed changes, or a jump if the error is large.
   - Every device must decode a file into the same samples at the same timestamps. Browsers disagree for
-    MP3 (Safari removes the 529-sample decoder delay, Chrome doesn't) and Safari can't decode FLAC,
-    so those use the same WebAssembly decoder everywhere (`decoders.ts`). AAC, Opus, Vorbis and PCM
-    decode identically in Chrome and Safari and use the browser's decoder.
+    MP3 (Safari removes the 529-sample decoder delay, Chrome doesn't), Safari can't decode FLAC and
+    Firefox outputs nothing for Vorbis, so those use the same WebAssembly decoder everywhere
+    (`decoders.ts`). AAC, Opus and PCM decode identically in every browser and use the browser's decoder.
   - When sound actually leaves the speaker comes from `AudioContext.getOutputTimestamp()`, smoothed over
     two seconds because Safari's readings jitter (`audio.ts`). Playback starts only once those readings
     have settled, and anything that still drifts more than 2 ms is re-placed with a crossfade.
