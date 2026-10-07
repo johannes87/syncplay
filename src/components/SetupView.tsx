@@ -3,11 +3,11 @@ import { navigate } from '@/hooks/useHashSession.ts';
 import { useUrlCheck } from '@/hooks/useUrlCheck.ts';
 import { isHttpUrl, parsePosition } from '@/lib/format.ts';
 import { clock, engine } from '@/lib/instances.ts';
-import { makeSession } from '@/lib/session.ts';
-import { LAST_URL_KEY, load, save } from '@/lib/storage.ts';
+import { makeSession, RIGHT_AWAY, startIn } from '@/lib/session.ts';
+import { LAST_URL_KEY, load, save, START_DELAY_KEY } from '@/lib/storage.ts';
 
 const DELAYS = [
-    { seconds: 3, label: 'Right away' },
+    { seconds: RIGHT_AWAY, label: 'Right away' },
     { seconds: 30, label: 'In 30 s' },
     { seconds: 60, label: 'In 1 min' },
     { seconds: 300, label: 'In 5 min' },
@@ -32,10 +32,10 @@ export function SetupView() {
             return;
         }
         save(LAST_URL_KEY, trimmed);
+        save(START_DELAY_KEY, String(delay));
         const session = makeSession({
             url: trimmed,
-            // Round to a full second so the start time reads nicely.
-            start: Math.ceil((clock.now() + delay * 1000) / 1000) * 1000,
+            start: startIn(clock.now(), delay),
             pos: parsePosition(position),
             loop,
         });

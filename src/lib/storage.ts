@@ -18,3 +18,5 @@ export function save(key: string, value: string): void {
 
 export const LAST_URL_KEY = 'syncplay.lastUrl';
 export const LATENCY_KEY = 'syncplay.latencyMs';
+/** Seconds between tapping start and the start, as last chosen on the setup screen. */
+export const START_DELAY_KEY = 'syncplay.startDelay';

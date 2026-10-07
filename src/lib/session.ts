@@ -14,6 +14,14 @@ export interface Session {
     title: string;
 }
 
+/** Seconds until the start for "Right away": enough for this device to load the song. */
+export const RIGHT_AWAY = 3;
+
+/** The start time `delay` seconds from `nowMs`, rounded up to a full second so it reads nicely. */
+export function startIn(nowMs: number, delay: number): number {
+    return Math.ceil((nowMs + delay * 1000) / 1000) * 1000;
+}
+
 export function makeSession(s: Omit<Session, 'title'>): Session {
     return { ...s, title: titleFromUrl(s.url) };
 }

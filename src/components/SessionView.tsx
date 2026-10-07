@@ -9,8 +9,8 @@ import { useProbedDuration } from '@/hooks/useProbedDuration.ts';
 import { useWakeLock } from '@/hooks/useWakeLock.ts';
 import { hostFromUrl } from '@/lib/format.ts';
 import { clock, engine } from '@/lib/instances.ts';
-import { isOver, type Session } from '@/lib/session.ts';
-import { LAST_URL_KEY, save } from '@/lib/storage.ts';
+import { isOver, RIGHT_AWAY, startIn, type Session } from '@/lib/session.ts';
+import { LAST_URL_KEY, load, save, START_DELAY_KEY } from '@/lib/storage.ts';
 
 interface Props {
     session: Session;
@@ -35,7 +35,9 @@ export function SessionView({ session, detailsOpen, onDetailsOpenChange }: Props
     };
 
     const replay = () => {
-        const next = { ...session, start: Math.ceil((clock.now() + 30_000) / 1000) * 1000 };
+        // Same delay as chosen on the setup screen; a guest who never chose starts right away.
+        const delay = Number(load(START_DELAY_KEY)) || RIGHT_AWAY;
+        const next = { ...session, start: startIn(clock.now(), delay) };
         engine.unlock();
         void engine.join(next);
         navigate(next);
