@@ -1,35 +1,38 @@
 {
-  "name": "syncplay",
-  "private": true,
-  "version": "1.0.0",
-  "type": "module",
-  "scripts": {
-    "dev": "vite",
-    "build": "tsc -b && vite build",
-    "preview": "vite preview",
-    "lint": "oxlint",
-    "test": "vitest run",
-    "deploy": "sh scripts/deploy.sh",
-    "test:e2e": "playwright test"
-  },
-  "dependencies": {
-    "@fontsource/space-grotesk": "^5.3.0",
-    "@wasm-audio-decoders/flac": "^0.2.11",
-    "mediabunny": "^1.61.0",
-    "mpg123-decoder": "^1.0.3",
-    "qrcode.react": "^4.2.0",
-    "react": "^19.3.0",
-    "react-dom": "^19.3.0"
-  },
-  "devDependencies": {
-    "@playwright/test": "^1.63.0",
-    "@types/node": "^26.6.3",
-    "@types/react": "^19.3.0",
-    "@types/react-dom": "^19.3.0",
-    "@vitejs/plugin-react": "^6.1.1",
-    "oxlint": "^1.86.0",
-    "typescript": "^7.0.2",
-    "vite": "^8.3.1",
-    "vitest": "^5.0.1"
-  }
+    "name": "syncplay",
+    "private": true,
+    "version": "1.0.0",
+    "type": "module",
+    "scripts": {
+        "dev": "vite",
+        "build": "tsc -b && vite build",
+        "preview": "vite preview",
+        "lint": "oxlint",
+        "test": "vitest run",
+        "deploy": "sh scripts/deploy.sh",
+        "test:e2e": "playwright test",
+        "format": "prettier --write .",
+        "format:check": "prettier --check ."
+    },
+    "dependencies": {
+        "@fontsource/space-grotesk": "^5.3.0",
+        "@wasm-audio-decoders/flac": "^0.2.11",
+        "mediabunny": "^1.61.0",
+        "mpg123-decoder": "^1.0.3",
+        "qrcode.react": "^4.2.0",
+        "react": "^19.3.0",
+        "react-dom": "^19.3.0"
+    },
+    "devDependencies": {
+        "@playwright/test": "^1.63.0",
+        "@types/node": "^26.6.3",
+        "@types/react": "^19.3.0",
+        "@types/react-dom": "^19.3.0",
+        "@vitejs/plugin-react": "^6.1.1",
+        "oxlint": "^1.86.0",
+        "prettier": "^3.9.9",
+        "typescript": "^7.0.2",
+        "vite": "^8.3.1",
+        "vitest": "^5.0.1"
+    }
 }
