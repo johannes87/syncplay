@@ -3,6 +3,7 @@
 // reach the speakers is muted. Not part of the app.
 
 import { ALL_FORMATS, AudioBufferSink, Input, UrlSource } from 'mediabunny';
+import { outputOffsetReading } from '@/lib/audio.ts';
 import { registerDecoders } from '@/lib/decoders.ts';
 import { clock, engine } from '@/lib/instances.ts';
 import { makeSession } from '@/lib/session.ts';
@@ -99,9 +100,8 @@ async function play(o: PlayOptions) {
     // Relation between AudioContext time and reference time (median: single readings jitter).
     const relation: number[] = [];
     const timer = setInterval(() => {
-        const ts = ctx.getOutputTimestamp();
-        if (ts.performanceTime && ts.contextTime != null)
-            relation.push(clock.fromPerf(ts.performanceTime) - ts.contextTime * 1000);
+        const offset = outputOffsetReading(ctx);
+        if (offset != null) relation.push(clock.fromPerf(offset));
     }, 100);
     const states: { state: string; at: number }[] = [];
     const unsubscribe = engine.subscribe(() => {

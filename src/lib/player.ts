@@ -8,7 +8,7 @@
 //    only tells us roughly where it is, so expect ~10-30 ms of wobble. Kept on
 //    time by a control loop that nudges playbackRate, or jumps when far off.
 
-import { outputClock, outputLatency, type Player, type Tuning } from '@/lib/audio.ts';
+import { FIREFOX, outputClock, outputLatency, type Player, type Tuning } from '@/lib/audio.ts';
 import type { ClockSync } from '@/lib/clock.ts';
 import { sessionKey, timelinePosition, type Session } from '@/lib/session.ts';
 import { LATENCY_KEY, load, save } from '@/lib/storage.ts';
@@ -242,7 +242,7 @@ export class SyncEngine {
         }
         // iOS unlocks each media element separately, so play it once now. Not in Firefox: it
         // needs no unlocking, and a sound ending while the AudioContext starts can freeze the tab.
-        if (!navigator.userAgent.includes('Firefox')) {
+        if (!FIREFOX) {
             this.#el!.src = this.#silence!;
             void this.#el!.play().catch(() => {});
         }

@@ -44,6 +44,22 @@ export function outputLatency(ctx: AudioContext): number {
     return (ctx.baseLatency || 0) + (ctx.outputLatency || 0);
 }
 
+export const FIREFOX = navigator.userAgent.includes('Firefox');
+
+/**
+ * One reading of performanceTime - contextTime * 1000 for audio being heard, ms, or null
+ * if the browser can't tell.
+ *
+ * Firefox reports the audio being rendered instead: it moves both clocks back by the
+ * output latency, which leaves the latency out of their relation. Add it.
+ */
+export function outputOffsetReading(ctx: AudioContext): number | null {
+    const ts = ctx.getOutputTimestamp?.();
+    if (!ts?.performanceTime || ts.contextTime == null) return null;
+    const offset = ts.performanceTime - ts.contextTime * 1000;
+    return FIREFOX ? offset + outputLatency(ctx) * 1000 : offset;
+}
+
 /**
  * When is a given AudioContext time heard, on the performance clock?
  *
@@ -66,9 +82,8 @@ class OutputClock {
     }
 
     #read() {
-        const ts = this.#ctx.getOutputTimestamp?.();
-        if (!ts?.performanceTime || ts.contextTime == null) return;
-        const offset = ts.performanceTime - ts.contextTime * 1000;
+        const offset = outputOffsetReading(this.#ctx);
+        if (offset == null) return;
         const median = this.#median();
         if (median != null && Math.abs(offset - median) > 2) {
             this.#jump.push(offset);
