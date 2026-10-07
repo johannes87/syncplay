@@ -1,5 +1,5 @@
 import { useEffect, useState, useSyncExternalStore } from 'react';
-import { clock, engine } from '../lib/instances.ts';
+import { clock, engine } from '@/lib/instances.ts';
 
 export const useClock = () => useSyncExternalStore(clock.subscribe, clock.getSnapshot);
 

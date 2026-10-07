@@ -1,7 +1,7 @@
 import { Fragment, useEffect, useReducer } from 'react';
-import { useClock, useEngine } from '../hooks/stores.ts';
-import { fmtMs } from '../lib/format.ts';
-import { engine } from '../lib/instances.ts';
+import { useClock, useEngine } from '@/hooks/stores.ts';
+import { fmtMs } from '@/lib/format.ts';
+import { engine } from '@/lib/instances.ts';
 
 interface Props {
     open: boolean;

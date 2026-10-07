@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
-import { Header } from './components/Header.tsx';
-import { SessionView } from './components/SessionView.tsx';
-import { SetupView } from './components/SetupView.tsx';
-import { useHashSession } from './hooks/useHashSession.ts';
-import { engine } from './lib/instances.ts';
-import { sessionKey } from './lib/session.ts';
+import { Header } from '@/components/Header.tsx';
+import { SessionView } from '@/components/SessionView.tsx';
+import { SetupView } from '@/components/SetupView.tsx';
+import { useHashSession } from '@/hooks/useHashSession.ts';
+import { engine } from '@/lib/instances.ts';
+import { sessionKey } from '@/lib/session.ts';
 
 export default function App() {
     const session = useHashSession();

@@ -1,7 +1,7 @@
 // Shared setup for the end-to-end tests.
 
 import { test as base, type Page, type Route } from '@playwright/test';
-import type { Harness, PlayOptions } from './harness.ts';
+import type { Harness, PlayOptions } from '@e2e/harness.ts';
 
 export { expect } from '@playwright/test';
 

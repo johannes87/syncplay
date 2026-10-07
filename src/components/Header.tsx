@@ -1,5 +1,5 @@
-import { useClock } from '../hooks/stores.ts';
-import { navigate } from '../hooks/useHashSession.ts';
+import { useClock } from '@/hooks/stores.ts';
+import { navigate } from '@/hooks/useHashSession.ts';
 
 export function Header({ onClockClick }: { onClockClick: () => void }) {
     return (

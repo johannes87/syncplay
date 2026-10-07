@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { estimate, TIME_SOURCES } from './clock.ts';
+import { estimate, TIME_SOURCES } from '@/lib/clock.ts';
 
 const sample = (offset: number, rtt: number) => ({ offset, rtt, at: 0 });
 

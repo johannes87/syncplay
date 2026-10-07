@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { probeDuration } from '../lib/probe.ts';
+import { probeDuration } from '@/lib/probe.ts';
 
 /** The song's length, known before joining (for "finished" and the progress ring). */
 export function useProbedDuration(url: string): number | null {

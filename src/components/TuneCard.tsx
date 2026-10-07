@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
-import { useEngine } from '../hooks/stores.ts';
-import { engine } from '../lib/instances.ts';
+import { useEngine } from '@/hooks/stores.ts';
+import { engine } from '@/lib/instances.ts';
 
 /** Lets each device shift itself earlier/later, e.g. to make up for Bluetooth delay. */
 export function TuneCard() {

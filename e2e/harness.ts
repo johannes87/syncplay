@@ -3,10 +3,10 @@
 // reach the speakers is muted. Not part of the app.
 
 import { ALL_FORMATS, AudioBufferSink, Input, UrlSource } from 'mediabunny';
-import { registerDecoders } from '../src/lib/decoders.ts';
-import { clock, engine } from '../src/lib/instances.ts';
-import { makeSession } from '../src/lib/session.ts';
-import { PREROLL, StreamPlayer } from '../src/lib/stream-player.ts';
+import { registerDecoders } from '@/lib/decoders.ts';
+import { clock, engine } from '@/lib/instances.ts';
+import { makeSession } from '@/lib/session.ts';
+import { PREROLL, StreamPlayer } from '@/lib/stream-player.ts';
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 

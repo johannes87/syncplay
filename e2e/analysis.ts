@@ -1,8 +1,8 @@
 // Compares what the engine played with where the song should have been.
 
 import { expect } from '@playwright/test';
-import { format, reference, sampleRate } from './fixtures.ts';
-import type { Harness } from './harness.ts';
+import { format, reference, sampleRate } from '@e2e/fixtures.ts';
+import type { Harness } from '@e2e/harness.ts';
 
 export type PlayResult = Awaited<ReturnType<Harness['play']>>;
 

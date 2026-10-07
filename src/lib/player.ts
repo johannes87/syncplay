@@ -8,12 +8,12 @@
 //    only tells us roughly where it is, so expect ~10-30 ms of wobble. Kept on
 //    time by a control loop that nudges playbackRate, or jumps when far off.
 
-import { outputClock, outputLatency, type Player, type Tuning } from './audio.ts';
-import type { ClockSync } from './clock.ts';
-import { sessionKey, timelinePosition, type Session } from './session.ts';
-import { LATENCY_KEY, load, save } from './storage.ts';
+import { outputClock, outputLatency, type Player, type Tuning } from '@/lib/audio.ts';
+import type { ClockSync } from '@/lib/clock.ts';
+import { sessionKey, timelinePosition, type Session } from '@/lib/session.ts';
+import { LATENCY_KEY, load, save } from '@/lib/storage.ts';
 
-export type { PlayMode } from './audio.ts';
+export type { PlayMode } from '@/lib/audio.ts';
 
 export type EngineState = 'idle' | 'loading' | 'waiting' | 'playing' | 'ended' | 'error';
 export interface EngineSnapshot {
@@ -257,7 +257,7 @@ export class SyncEngine {
         const candidates: (() => Promise<Player>)[] = [
             async () => {
                 // Loaded on demand: it brings the media library along.
-                const { StreamPlayer } = await import('./stream-player.ts');
+                const { StreamPlayer } = await import('@/lib/stream-player.ts');
                 return new StreamPlayer(this.ctx!, this.#master!, this.clock);
             },
             async () => new BasicPlayer(this.#el!, this.ctx!, this.clock),

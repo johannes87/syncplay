@@ -7,8 +7,8 @@
 // WebAssembly decoder), AAC (the browser's decoder) and Vorbis (needs its first piece
 // realigned). decoding.e2e.ts checks every format's decoded audio sample for sample.
 
-import { analyse, expectInSync, fromBase64 } from './analysis.ts';
-import { expect, fileUrl, test } from './test.ts';
+import { analyse, expectInSync, fromBase64 } from '@e2e/analysis.ts';
+import { expect, fileUrl, test } from '@e2e/test.ts';
 
 for (const file of ['vbr.mp3', 'aac.m4a', 'vorbis.ogg']) {
     test(`${file}: in sync across piece boundaries and a nudge`, async ({ harness, browserName }, testInfo) => {

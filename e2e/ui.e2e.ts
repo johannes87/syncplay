@@ -1,7 +1,7 @@
 // The real app (production build): what hosts and guests see.
 
-import { QUIET_FILE } from './fixtures.ts';
-import { APP_URL, expect, fileUrl, test } from './test.ts';
+import { QUIET_FILE } from '@e2e/fixtures.ts';
+import { APP_URL, expect, fileUrl, test } from '@e2e/test.ts';
 
 test.describe.configure({ mode: 'parallel' });
 

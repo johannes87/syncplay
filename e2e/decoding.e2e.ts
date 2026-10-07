@@ -3,9 +3,9 @@
 // format is decoded (e.g. Safari drops MP3's 529-sample decoder delay, which is
 // why MP3 uses our own WebAssembly decoder; see src/lib/decoders.ts).
 
-import { bestLag, fromBase64 } from './analysis.ts';
-import { FORMATS, reference, sampleRate } from './fixtures.ts';
-import { expect, fileUrl, test } from './test.ts';
+import { bestLag, fromBase64 } from '@e2e/analysis.ts';
+import { FORMATS, reference, sampleRate } from '@e2e/fixtures.ts';
+import { expect, fileUrl, test } from '@e2e/test.ts';
 
 test.describe.configure({ mode: 'parallel' });
 

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { fmtTime, isHttpUrl } from '../lib/format.ts';
-import { probeCors, probeDuration } from '../lib/probe.ts';
+import { fmtTime, isHttpUrl } from '@/lib/format.ts';
+import { probeCors, probeDuration } from '@/lib/probe.ts';
 
 export interface UrlCheck {
     state: '' | 'checking' | 'ok' | 'warn' | 'bad';

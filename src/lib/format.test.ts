@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { fmtMs, fmtTime, parsePosition, titleFromUrl } from './format.ts';
+import { fmtMs, fmtTime, parsePosition, titleFromUrl } from '@/lib/format.ts';
 
 describe('format', () => {
     it('formats times', () => {

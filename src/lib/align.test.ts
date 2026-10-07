@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { findLag } from './align.ts';
+import { findLag } from '@/lib/align.ts';
 
 function noise(n: number) {
     let seed = 1;

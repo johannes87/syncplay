@@ -1,7 +1,7 @@
 // Client-side NTP: the shared clock must be right even when the device clock isn't.
 // The time server is simulated locally (see e2e/test.ts).
 
-import { expect, test } from './test.ts';
+import { expect, test } from '@e2e/test.ts';
 
 test.describe('device clock 89 s behind', () => {
     test.use({ timeServer: { offsetMs: 89_000 } });

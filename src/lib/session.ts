@@ -1,4 +1,4 @@
-import { titleFromUrl } from './format.ts';
+import { titleFromUrl } from '@/lib/format.ts';
 
 /**
  * Everything a device needs to play along. At reference time `start` (ms since

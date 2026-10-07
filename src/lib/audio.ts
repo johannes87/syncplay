@@ -1,4 +1,4 @@
-import type { ClockSync } from './clock.ts';
+import type { ClockSync } from '@/lib/clock.ts';
 
 export type PlayMode = 'precise' | 'basic';
 

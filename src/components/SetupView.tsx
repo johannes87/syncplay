@@ -1,10 +1,10 @@
 import { useRef, useState } from 'react';
-import { navigate } from '../hooks/useHashSession.ts';
-import { useUrlCheck } from '../hooks/useUrlCheck.ts';
-import { isHttpUrl, parsePosition } from '../lib/format.ts';
-import { clock, engine } from '../lib/instances.ts';
-import { makeSession } from '../lib/session.ts';
-import { LAST_URL_KEY, load, save } from '../lib/storage.ts';
+import { navigate } from '@/hooks/useHashSession.ts';
+import { useUrlCheck } from '@/hooks/useUrlCheck.ts';
+import { isHttpUrl, parsePosition } from '@/lib/format.ts';
+import { clock, engine } from '@/lib/instances.ts';
+import { makeSession } from '@/lib/session.ts';
+import { LAST_URL_KEY, load, save } from '@/lib/storage.ts';
 
 const DELAYS = [
     { seconds: 3, label: 'Right away' },

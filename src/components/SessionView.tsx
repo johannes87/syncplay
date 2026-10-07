@@ -1,16 +1,16 @@
 import type { ReactNode } from 'react';
-import { useEngine, useNow } from '../hooks/stores.ts';
-import { navigate } from '../hooks/useHashSession.ts';
-import { useProbedDuration } from '../hooks/useProbedDuration.ts';
-import { useWakeLock } from '../hooks/useWakeLock.ts';
-import { hostFromUrl } from '../lib/format.ts';
-import { clock, engine } from '../lib/instances.ts';
-import { isOver, type Session } from '../lib/session.ts';
-import { LAST_URL_KEY, save } from '../lib/storage.ts';
-import { ShareCard } from './ShareCard.tsx';
-import { Stage } from './Stage.tsx';
-import { SyncDetails } from './SyncDetails.tsx';
-import { TuneCard } from './TuneCard.tsx';
+import { ShareCard } from '@/components/ShareCard.tsx';
+import { Stage } from '@/components/Stage.tsx';
+import { SyncDetails } from '@/components/SyncDetails.tsx';
+import { TuneCard } from '@/components/TuneCard.tsx';
+import { useEngine, useNow } from '@/hooks/stores.ts';
+import { navigate } from '@/hooks/useHashSession.ts';
+import { useProbedDuration } from '@/hooks/useProbedDuration.ts';
+import { useWakeLock } from '@/hooks/useWakeLock.ts';
+import { hostFromUrl } from '@/lib/format.ts';
+import { clock, engine } from '@/lib/instances.ts';
+import { isOver, type Session } from '@/lib/session.ts';
+import { LAST_URL_KEY, save } from '@/lib/storage.ts';
 
 interface Props {
     session: Session;

@@ -1,7 +1,7 @@
 // How much a device downloads before it can join. Matters on mobile data.
 
-import { LONG_FILES } from './fixtures.ts';
-import { bytesSent, expect, fileUrl, test, type HarnessApi } from './test.ts';
+import { LONG_FILES } from '@e2e/fixtures.ts';
+import { bytesSent, expect, fileUrl, test, type HarnessApi } from '@e2e/test.ts';
 
 const MB = 1024 * 1024;
 // Measured: 4.5-6.5 MB to join near the start or an AAC file late (Mediabunny

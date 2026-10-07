@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { isOver, makeSession, parseSession, sessionLink, timelinePosition } from './session.ts';
+import { isOver, makeSession, parseSession, sessionLink, timelinePosition } from '@/lib/session.ts';
 
 const BASE = 'https://example.org/syncplay/';
 

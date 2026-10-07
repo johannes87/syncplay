@@ -8,10 +8,10 @@
 // happen at each seam. Only a few pieces are in memory at any time.
 
 import { ALL_FORMATS, AudioBufferSink, Input, UrlSource } from 'mediabunny';
-import { findLag } from './align.ts';
-import { audibleNow, ctxTimeFor, type Player, type Tuning } from './audio.ts';
-import type { ClockSync } from './clock.ts';
-import { registerDecoders } from './decoders.ts';
+import { findLag } from '@/lib/align.ts';
+import { audibleNow, ctxTimeFor, type Player, type Tuning } from '@/lib/audio.ts';
+import type { ClockSync } from '@/lib/clock.ts';
+import { registerDecoders } from '@/lib/decoders.ts';
 
 /** Seconds of audio per piece. */
 export const CHUNK = 10;
